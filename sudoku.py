@@ -1,89 +1,84 @@
-grid = [[0, 1, 0, 0, 0, 0, 6, 5, 0],
-		[0, 9, 0, 6, 0, 3, 1, 0, 7],
-		[0, 0, 0, 0, 0, 7, 2, 8, 9],
-		[0, 4, 0, 0, 1, 2, 3, 0, 0],
-		[0, 8, 0, 0, 7, 0, 0, 2, 0],
-		[0, 0, 3, 9, 8, 0, 0, 6, 0],
-		[4, 5, 6, 7, 0, 0, 0, 0, 0],
-		[9, 0, 2, 4, 0, 8, 0, 1, 0],
-		[0, 7, 1, 0, 0, 0, 0, 9, 0]]
-		
-		
-# define box coords
-'''
-if x in [0,2] and y in [0,2]
-for x in range(3) ...
-	for y in range(3)...
-		check
+import numpy
 
-we just need to check end points and add three to both x and y ranges
-box_ends = [0, 3, 6, 9]
-
-arb [x,y]
-x_constr = []
-y_constr = []
-
-for endpoint in box_ends:
-	if x > endpoint:
-		continue
-	else:
-		for i in range(box_ends[endpoint-1], box_ends[endpoint-1]+3]:
-			x_constr.append(i)
-		break
-
-for endpoint in box_ends:
-	if y > endpoint:
-		continue
-	else:
-		i in range(box_ends[endpoint-1], box_ends[endpoint-1]+3]:
-			y_constr.append(i)
-		break
-
-'''
+grid = [[0, 0, 0, 0, 8, 0, 0, 0, 0],
+		[8, 0, 9, 0, 7, 1, 0, 2, 0],
+		[4, 0, 3, 5, 0, 0, 0, 0, 1],
+		[0, 0, 0, 1, 0, 0, 0, 0, 7],
+		[0, 0, 2, 0, 3, 4, 0, 8, 0],
+		[7, 3, 0, 0, 0, 9, 0, 0, 4],
+		[9, 0, 0, 0, 0, 0, 7, 0, 2],
+		[0, 0, 8, 2, 0, 5, 0, 9, 0],
+		[1, 0, 0, 0, 4, 0, 3, 0, 0]]
 
 		
 # helper function to find boxes that coordinate pertains to
-def box(puzzle, x, y):
+def box(x, y):
+	box_ends = [0, 3, 6, 9]
 	x_constr = []
 	y_constr = []
 	
-	for endpoint in box_ends:
-		if x > endpoint:
+	for endpoint in range(len(box_ends)):
+		if x >= box_ends[endpoint]:
 			continue
 		else:
-			for i in range(box_ends[endpoint-1], box_ends[endpoint-1]+3]:
+			start = None
+			if x == 0:
+				start = 0
+			else:
+				start = endpoint-1
+			for i in range(box_ends[start], box_ends[start]+3):
 				x_constr.append(i)
 			break
 
-	for endpoint in box_ends:
-		if y > endpoint:
+	for endpoint in range(len(box_ends)):
+		if y >= box_ends[endpoint]:
 			continue
 		else:
-			i in range(box_ends[endpoint-1], box_ends[endpoint-1]+3]:
+			start = None
+			if y == 0:
+				start = 0
+			else:
+				start = endpoint-1
+			for i in range(box_ends[start], box_ends[start]+3):
 				y_constr.append(i)
 			break
-			
+	
 	return [x_constr, y_constr]
 
 
-def is_valid(puzzle, x, y, n):
+def is_valid(grid, x, y, n):
 	# check vertically
-	for x in range(9):
-		if grid[x][y] == n:
+	for i in range(9):
+		if grid[i][y] == n:
 			return False
 	
 	# check horizontally
-	for y in range(9):
-		if grid[x][y] == n:
+	for i in range(9):
+		if grid[x][i] == n:
 			return False
 	
-	# check square
-	box = box(puzzle, x, y)
-	for x in box[0]:
-		for y in box[1]:
-			if grid[x][y] == n:
+	# check box
+	box_ = box(x, y)
+	for i in box_[0]:
+		for z in box_[1]:
+			if grid[i][z] == n:
 				return False
 				
 	return True
 
-def solve():
+def solve(grid):
+	for x in range(9):
+		for y in range(9):
+			if grid[x][y] == 0:
+				for n in range(1, 10):
+					if is_valid(grid, x, y, n):
+						grid[x][y] = n
+						solve(grid)
+						grid[x][y] = 0
+				return None
+
+	print(numpy.matrix(grid))
+	
+
+solve(grid)
+	
