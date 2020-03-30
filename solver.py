@@ -49,34 +49,36 @@ def box(x, y):
 def is_valid(grid, x, y, n):
 	# check vertically
 	for i in range(9):
-		if grid[i][y] == n:
+		if (grid[i][y] == n) and (i != x):
 			return False
 	
 	# check horizontally
 	for i in range(9):
-		if grid[x][i] == n:
+		if (grid[x][i] == n) and (i != y):
 			return False
 	
 	# check box
 	box_ = box(x, y)
 	for i in box_[0]:
 		for z in box_[1]:
-			if grid[i][z] == n:
+			if (grid[i][z] == n) and ((i, z) != (x, y)):
 				return False
 				
 	return True
 
 def find_empty(grid):
-	for y in range(9):
-		for x in range(9):
-			if grid[y][x] == 0:
-				return (y, x)
+	# finds empty box coords, otherwise returns false
+	for x in range(9):
+		for y in range(9):
+			if grid[x][y] == 0:
+				return (x, y)
 				
 	return False
 
 
 def solve(grid):
 	next_ = find_empty(grid)
+	# Base case, returns true if all boxes are filled
 	if not next_:
 		return True
 	else:
@@ -84,8 +86,10 @@ def solve(grid):
 		for n in range(1, 10):
 			if is_valid(grid, x, y, n):
 				grid[x][y] = n
+				# Recursion
 				if solve(grid):
 					return True
+				# Backtrack
 				grid[x][y] = 0
 		return None
 		

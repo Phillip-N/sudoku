@@ -1,7 +1,7 @@
-import numpy
 import pygame
 import sys
-import time
+import ctypes
+import copy
 from solver import box, is_valid, find_empty
 
 class Box():
@@ -25,7 +25,6 @@ class Box():
 			win.blit(text, (self.x + (self.width/2 - text.get_width()/2), self.y + (self.height/2 - text.get_height()/2)))
             
 	def isOver(self, pos):
-		#Pos is the mouse position or a tuple of (x,y) coordinates
 		if pos[0] > self.x and pos[0] < self.x + self.width:
 			if pos[1] > self.y and pos[1] < self.y + self.height:
 				return True
@@ -40,6 +39,7 @@ class Sudoku():
 		self.screen = pygame.display.set_mode((675,675))
 		pygame.display.set_caption('Sudoku')
 		
+		# Complex Puzzle
 		# self.grid = [[0, 0, 0, 0, 8, 0, 0, 0, 0],
 					# [8, 0, 9, 0, 7, 1, 0, 2, 0],
 					# [4, 0, 3, 5, 0, 0, 0, 0, 1],
@@ -50,6 +50,7 @@ class Sudoku():
 					# [0, 0, 8, 2, 0, 5, 0, 9, 0],
 					# [1, 0, 0, 0, 4, 0, 3, 0, 0]]
 
+		# Easy Puzzle
 		self.grid = [[8, 1, 7, 0, 0, 0, 0, 4, 5],
 					[0, 0, 0, 0, 5, 1, 7, 0, 6],
 					[2, 6, 5, 0, 0, 3, 0, 0, 1],
@@ -59,6 +60,10 @@ class Sudoku():
 					[0, 4, 0, 2, 0, 0, 0, 0, 0],
 					[0, 0, 0, 0, 0, 5, 0, 7, 9],
 					[5, 8, 9, 7, 3, 0, 1, 6, 0]]
+		
+		# creating a deep copy of the original puzzle for the purpose of the solver
+		self.default = copy.deepcopy(self.grid)
+		self.cur_grid = self.grid
 					
 		self.boxes = list()
 					
@@ -76,7 +81,7 @@ class Sudoku():
 	def run_game(self):
 		while True:
 			self.check_events()
-			self.update_screen()
+			self.update_screen(self.cur_grid)
 
 				
 	def check_events(self):
@@ -104,8 +109,37 @@ class Sudoku():
 							print(self.grid)
 					except ValueError:
 						pass
+						
+						
+			if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+				def check_win():
+					for box in self.boxes:
+						if is_valid(self.grid, int(box.y/75), int(box.x/75), int(box.text)) == False:
+							print(is_valid(self.grid, int(box.y/75), int(box.x/75), int(box.text)))
+							print(int(box.y/75))
+							print(int(box.x/75))
+							print(self.grid[int(box.y/75)][int(box.x/75)])
+							print(int(box.text))
+							box.color = (255, 0, 0)
+							return False
+							break
+						else:
+							continue
+						
+						return True
+						
+				try:
+					if check_win() == False:
+						ctypes.windll.user32.MessageBoxW(0, "You made a mistake somewhere", "Sorry!", 1)
+					else:
+						ctypes.windll.user32.MessageBoxW(0, "You Win!", "CONGRATULATIONS!", 1)
+				except ValueError:
+					ctypes.windll.user32.MessageBoxW(0, "Please make sure you fill in all the squares", "Error!", 1)
+
 			
 			if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+				# Nesting the solver function directly as a event response
+				# in order to draw solver visualization
 				def solve(grid):
 					next_ = find_empty(grid)
 					if not next_:
@@ -115,24 +149,29 @@ class Sudoku():
 						for n in range(1, 10):
 							if is_valid(grid, x, y, n):
 								grid[x][y] = n
-								self.update_screen()
-								if solve(self.grid):
+								# calling update_screen to show solver algo steps
+								# and backtracking
+								self.update_screen(grid)
+								if solve(grid):
 									return True
 								grid[x][y] = 0
 						return None
-				solve(self.grid)
+				self.cur_grid = self.default
+				solve(self.cur_grid)
 
 
 
-	def update_screen(self):
+	def update_screen(self, grid):
 		
+		# Redefining the box parameters and drawing to screen
 		for box in self.boxes:
-			if str(self.grid[int(box.y/75)][int(box.x/75)]) == '0':
+			if str(grid[int(box.y/75)][int(box.x/75)]) == '0':
 				box.text = ''
 			else:
-				box.text = str(self.grid[int(box.y/75)][int(box.x/75)])
+				box.text = str(grid[int(box.y/75)][int(box.x/75)])
 			box.draw(self.screen)
 		
+		# Drawing solid lines to seperate internal sudoku boxes
 		pygame.draw.rect(self.screen, (0,0,0), (225, 0, 3, 675), 0)
 		pygame.draw.rect(self.screen, (0,0,0), (450, 0, 3, 675), 0)
 		pygame.draw.rect(self.screen, (0,0,0), (0, 225, 675, 3), 0)
