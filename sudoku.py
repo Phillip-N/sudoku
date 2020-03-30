@@ -73,9 +73,9 @@ class Sudoku():
 					[0, 0, 0, 0, 5, 1, 7, 0, 6],
 					[2, 6, 5, 0, 0, 3, 0, 0, 1],
 					[4, 7, 0, 5, 6, 8, 0, 0, 0],
-					[9, 5, 1, 0, 0, 0, 0, 8, 0],
+					[9, 5, 1, 0, 4, 0, 0, 8, 0],
 					[0, 3, 0, 0, 9, 0, 2, 0, 0],
-					[0, 4, 0, 2, 0, 0, 0, 0, 0],
+					[0, 4, 0, 2, 0, 9, 0, 0, 0],
 					[0, 0, 0, 0, 0, 5, 0, 7, 9],
 					[5, 8, 9, 7, 3, 0, 1, 6, 0]]
 		
@@ -174,6 +174,7 @@ class Sudoku():
 
 			
 			if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+				pygame.time.set_timer(pygame.USEREVENT, 0)
 				# Nesting the solver function directly as a event response
 				# in order to draw solver visualization
 				def solve(grid):
@@ -192,6 +193,7 @@ class Sudoku():
 									return True
 								grid[x][y] = 0
 						return None
+						
 				self.cur_grid = self.default
 				solve(self.cur_grid)
 
