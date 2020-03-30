@@ -31,12 +31,30 @@ class Box():
             
 		return False
 
+class Timer():
+	def __init__(self, color, x, y, width, height, text=''):
+		self.color = color
+		self.x = x
+		self.y = y
+		self.width = width
+		self.height = height
+		self.text = text
+		self.counter = 0
+	
+	def draw(self, win):
+		pygame.draw.rect(win, self.color, (self.x,self.y,self.width,self.height),0)
+	
+		if self.text != '':
+			font = pygame.font.SysFont('comicsans', 60)
+			text = font.render(self.text, 1, (0,0,0))
+			win.blit(text, (self.x + (self.width/2 - text.get_width()/2), self.y + (self.height/2 - text.get_height()/2)))
 
 class Sudoku():
 	def __init__(self):
 		pygame.init()
+		pygame.time.set_timer(pygame.USEREVENT, 1000)
 		
-		self.screen = pygame.display.set_mode((675,675))
+		self.screen = pygame.display.set_mode((675,725))
 		pygame.display.set_caption('Sudoku')
 		
 		# Complex Puzzle
@@ -66,6 +84,8 @@ class Sudoku():
 		self.cur_grid = self.grid
 					
 		self.boxes = list()
+		
+
 					
 		for x in range(9):
 			for y in range (9):
@@ -77,6 +97,14 @@ class Sudoku():
 				
 				box.draw(self.screen)
 				self.boxes.append(box)
+		
+		self.timer = Timer((255,255,255), 525, 675, 150, 50, '00:00')
+		self.timer.draw(self.screen)
+		
+		pygame.draw.rect(self.screen, (255,255,255), (0, 675, 525, 50), 0)
+		font = pygame.font.SysFont('comicsans', 32)
+		text = font.render('Press Space to Auto-Solve or Enter to Submit', 1, (0,0,0))
+		self.screen.blit(text, (6, 686))
 	
 	def run_game(self):
 		while True:
@@ -87,7 +115,21 @@ class Sudoku():
 	def check_events(self):
 		for event in pygame.event.get():
 			pos = pygame.mouse.get_pos()
+			
+			if event.type == pygame.USEREVENT:
+				self.timer.counter += 1
+				if len(str(self.timer.counter//60)) == 1:
+					mins = '0' + str(self.timer.counter//60)
+				else:
+					mins = str(self.timer.counter//60)
 				
+				if len(str(self.timer.counter%60)) == 1:
+					secs = '0' + str(self.timer.counter%60)
+				else:
+					secs = str(self.timer.counter%60)
+				self.timer.text = mins + ':' + secs
+				self.timer.draw(self.screen)
+			
 			if event.type == pygame.QUIT:
 				sys.exit()
 			
@@ -106,7 +148,6 @@ class Sudoku():
 						if int(key) in range(1, 10): 
 							box.text = key
 							self.grid[int(box.y/75)][int(box.x/75)] = key
-							print(self.grid)
 					except ValueError:
 						pass
 						
@@ -115,11 +156,6 @@ class Sudoku():
 				def check_win():
 					for box in self.boxes:
 						if is_valid(self.grid, int(box.y/75), int(box.x/75), int(box.text)) == False:
-							print(is_valid(self.grid, int(box.y/75), int(box.x/75), int(box.text)))
-							print(int(box.y/75))
-							print(int(box.x/75))
-							print(self.grid[int(box.y/75)][int(box.x/75)])
-							print(int(box.text))
 							box.color = (255, 0, 0)
 							return False
 							break
@@ -159,8 +195,6 @@ class Sudoku():
 				self.cur_grid = self.default
 				solve(self.cur_grid)
 
-
-
 	def update_screen(self, grid):
 		
 		# Redefining the box parameters and drawing to screen
@@ -177,6 +211,7 @@ class Sudoku():
 		pygame.draw.rect(self.screen, (0,0,0), (0, 225, 675, 3), 0)
 		pygame.draw.rect(self.screen, (0,0,0), (0, 450, 675, 3), 0)
 		
+
 		pygame.display.flip()
 
 
